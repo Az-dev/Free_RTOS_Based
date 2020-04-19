@@ -23,7 +23,7 @@
  void PUSHBTN_Config(void)
  {
    PORTC_DIR &= ~(0x10); /* BTN0 */
-   //PORTB_DIR &= ~(0x04); /* BTN1 */   
+   PORTB_DIR &= ~(0x04); /* BTN1 */   
  }
 
  /*
@@ -58,6 +58,8 @@
  */
  void PUSHBTN_Get_BTN1_Status(uint8_t * state)
  {
+    /* denouncing delay*/
+    _delay_ms(50);
     /* Check if is Set or not */
     if(BIT_IS_SET(PORTB_PIN,2))
     {

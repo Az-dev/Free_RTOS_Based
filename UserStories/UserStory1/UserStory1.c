@@ -6,25 +6,18 @@
  */ 
 /*- INCLUDES -------------------------------------------------------------------------------------------------------------*/
 #include <string.h>
-#include "../ECUAL/PUSHBTN_SOS/PUSHBTN_SOS.h"
-#include "../ECUAL/LCD/LCD.h"
-#include "../ECUAL/PUSHBTN_SOS/PUSHBTN_SOS.h"
-#include "UserStories.h"
-#include "../RTOS_AVR_PORT/FreeRTOS.h"
-#include "../RTOS_AVR_PORT/task.h"
-#include "../RTOS_AVR_PORT/semphr.h"
+#include "../../ECUAL/PUSHBTN_SOS/PUSHBTN_SOS.h"
+#include "../../ECUAL/LCD/LCD.h"
+#include "../../ECUAL/PUSHBTN_SOS/PUSHBTN_SOS.h"
+#include "UserStory1.h"
+#include "../../RTOS_AVR_PORT/FreeRTOS.h"
+#include "../../RTOS_AVR_PORT/task.h"
+#include "../../RTOS_AVR_PORT/semphr.h"
 /*- GLOBALS -------------------------------------------------------------------------------------------------------------*/
 static uint8_t gu8_displayFlag = CLEAR_MESSAGE;
 static uint8_t gu8_messageHolder[50]={0};
 static uint8_t gu8_btn0State = RELEASED; 
 /*- FUNCTION DEFINITIONS ------------------------------------------------------------------------------------------------*/
-/*-----  Start Idle Task ------*/
-void vApplicationIdleHook( void )
-{
-   /* Do Nothing */
-   //taskYIELD();
-}
-/*----- End Idle Task -------*/
 /*---- Static xTasks ----*/
 /*
 *  Description : Represents UserStory1 Init.
@@ -40,9 +33,7 @@ void S1_Init(void * param)
    /* 2 - Config & Init LCD */
    LCD_init();
    //LCD_clear();
-   LCD_gotoRowColumn(1,1);
-   /* 3 - Config Push BTN */
-   PUSHBTN_Config();
+   LCD_gotoRowColumn(1,1);   
    for(;;)
    {
       vTaskDelete(NULL);
