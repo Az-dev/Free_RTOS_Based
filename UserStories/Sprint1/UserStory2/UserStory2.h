@@ -23,9 +23,9 @@
 #define DIGIT_4 3
 #define DIGIT_5 4
 #define DIGIT_6 5
-#define ENTER   6
+#define ENTER   55
 #define DIGIT_0 7
-#define ERASE   8
+#define ERASE   56
 #define NO_ACTION 9
 /*- FUNCTION PROTOTYPES ---------------------------------------------------------------------------------------------------*/
 extern void S1_UserStory2(void);
