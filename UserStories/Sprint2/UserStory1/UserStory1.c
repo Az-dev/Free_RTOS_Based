@@ -6,13 +6,13 @@
  */ 
 /*- INCLUDES -------------------------------------------------------------------------------------------------------------*/
 #include <string.h>
-#include "../../ECUAL/PUSHBTN_SOS/PUSHBTN_SOS.h"
-#include "../../ECUAL/LCD/LCD.h"
-#include "../../ECUAL/PUSHBTN_SOS/PUSHBTN_SOS.h"
+#include "../../../ECUAL/PUSHBTN_SOS/PUSHBTN_SOS.h"
+#include "../../../ECUAL/LCD/LCD.h"
+#include "../../../ECUAL/PUSHBTN_SOS/PUSHBTN_SOS.h"
 #include "UserStory1.h"
-#include "../../RTOS_AVR_PORT/FreeRTOS.h"
-#include "../../RTOS_AVR_PORT/task.h"
-#include "../../RTOS_AVR_PORT/semphr.h"
+#include "../../../RTOS_AVR_PORT/FreeRTOS.h"
+#include "../../../RTOS_AVR_PORT/task.h"
+#include "../../../RTOS_AVR_PORT/semphr.h"
 /*- GLOBALS -------------------------------------------------------------------------------------------------------------*/
 static uint8_t gu8_displayFlag = CLEAR_MESSAGE;
 static uint8_t gu8_messageHolder[50]={0};
@@ -141,7 +141,7 @@ static void TaskC(void * param)
 }
 /*------- User Stories --------*/
 
-void UserStory1(void)
+void S2_UserStory1(void)
 {
    /* create Task A*/
    xTaskCreate(S1_Init,"S1_Init",100,NULL,4,NULL);

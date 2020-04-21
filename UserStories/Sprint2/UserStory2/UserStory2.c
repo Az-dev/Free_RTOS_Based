@@ -6,14 +6,14 @@
  */ 
 /*- INCLUDES -------------------------------------------------------------------------------------------------------------*/
 #include <string.h>
-#include "../../ECUAL/PUSHBTN_SOS/PUSHBTN_SOS.h"
-#include "../../ECUAL/LCD/LCD.h"
-#include "../../ECUAL/PUSHBTN_SOS/PUSHBTN_SOS.h"
-#include "../../ECUAL/LEDS/led.h"
+#include "../../../ECUAL/PUSHBTN_SOS/PUSHBTN_SOS.h"
+#include "../../../ECUAL/LCD/LCD.h"
+#include "../../../ECUAL/PUSHBTN_SOS/PUSHBTN_SOS.h"
+#include "../../../ECUAL/LEDS/led.h"
 #include "UserStory2.h"
-#include "../../RTOS_AVR_PORT/FreeRTOS.h"
-#include "../../RTOS_AVR_PORT/task.h"
-#include "../../RTOS_AVR_PORT/semphr.h"
+#include "../../../RTOS_AVR_PORT/FreeRTOS.h"
+#include "../../../RTOS_AVR_PORT/task.h"
+#include "../../../RTOS_AVR_PORT/semphr.h"
 /*- GLOBALS -------------------------------------------------------------------------------------------------------------*/
 static uint8_t gu8_displayFlag = CLEAR_MESSAGE;
 static uint8_t gu8_messageHolder[50]={0};
@@ -215,7 +215,7 @@ static void TaskD(void)
 
 /*------- User Stories --------*/
 
-void UserStory2(void)
+void S2_UserStory2(void)
 {
    /*create mutex */
    xMutex = xSemaphoreCreateMutex();
