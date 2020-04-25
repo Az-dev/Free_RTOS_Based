@@ -24,11 +24,13 @@ int main(void)
 
    /*---- Sprint1 User Stories ------*/
    //S1_UserStory1();
-   S1_UserStory2();
+   //S1_UserStory2();
    //S1_UserStory3();
    /*---- Sprint2 User Stories ------*/
    //S2_UserStory1();
    //S2_UserStory2();
+   /*---- Sprint3 User Stories ------*/
+   S3_project();
    
 
    return 0;
