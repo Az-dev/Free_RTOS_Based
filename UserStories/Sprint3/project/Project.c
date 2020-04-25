@@ -32,7 +32,14 @@
  {   
    /* on successful transmission : raise byte_transmission_complete event bit && byte to be transmitted is not null */
    EventBits_t x = xEventGroupSetBits(xEventGroupHandle,(const EventBits_t)BYTE_SENT);  
- } 
+ }
+
+ static void UDER_CallBack(void)
+ {
+    /* UDR is ready */
+    EventBits_t x = xEventGroupSetBits(xEventGroupHandle,(const EventBits_t)UDR_READY);
+ }
+  
  static void RxCallBack(void)
  {  
    /* on successful reception : raise byte_reception_complete event bit && byte to be received is not null */
@@ -47,6 +54,7 @@
    /* Init USART */
    Usart_Init(&free_rtos_usart_config);
    USART_SetTxCallBack(TxCallBack);
+   //USART_Set_UDRE_CallBack(UDER_CallBack);
    USART_SetRxCallBack(RxCallBack);
    /* Init pushbtn*/
    PUSHBTN_Config();   
@@ -109,13 +117,13 @@
       
   }
 
-  static void MessageTransmitter(void * param)
+  static void MessageTransiever(void * param)
   { 
       uint8_t index = 0;
       /* Define Last wake time */
       TickType_t xLastWakeTime;
       /* Time delay value in ms*/
-      const TickType_t xDelay = pdMS_TO_TICKS(15);
+      const TickType_t xDelay = pdMS_TO_TICKS(20);
       /* Initialize last wake time */
       xLastWakeTime = xTaskGetTickCount();
       EventBits_t au8_EventGroupVal = 0;         
@@ -123,15 +131,23 @@
       {
          /*1 - waits until send_message event bit is raised 
          if true write the next byte(from MessageToSendBuffer ) to UDR until you get to the last element in buffer and while send_byte_success*/
-         au8_EventGroupVal = xEventGroupWaitBits(xEventGroupHandle,(const EventBits_t)(BYTE_SENT|SEND_MSG|BYTE_RECIEVED),pdTRUE,pdFALSE,pdMS_TO_TICKS(10));
+         au8_EventGroupVal = xEventGroupWaitBits(xEventGroupHandle,(const EventBits_t)(BYTE_SENT|SEND_MSG|BYTE_RECIEVED),pdTRUE,pdFALSE,pdTRUE);
+         PORTC_DATA = au8_EventGroupVal;
          switch(au8_EventGroupVal)
          {
-            case BYTE_SENT:
+            case BYTE_RECIEVED:
+               /*waits until byte_reception_complete event bit is raised 
+               if true write the next byte(from MessageRecieved )from UDR + increment index */               
+               /* Read UDR */               
+               UsartReadRx(&gau8_RecievedMessage[index]); 
+               //ResetUDR();              
+            break;
+            case BYTE_SENT:   
             case SEND_MSG:
                /* write byte to UDR */
                if('\0' != gau8_MessageToSend[index])
                {
-                  _delay_ms(5);   /* a delay between the consequetive write operations */
+                  //_delay_ms(5);   /* a delay between the consequent write operations */
                   index++;                  
                   UsartWriteTx(&gau8_MessageToSend[index]);
                }
@@ -142,17 +158,10 @@
                   /*reset index */
                   index = 0;
                }
-            break;
-            case BYTE_RECIEVED:
-               /*waits until byte_reception_complete event bit is raised 
-               if true write the next byte(from MessageRecieved )from UDR + increment index */               
-               /* Read UDR */               
-               UsartReadRx(&gau8_RecievedMessage[index]); 
-               //ResetUDR();              
-            break;
+            break;            
          }         
          /* force moving task to block state after every wait iteration to switch to reception */
-         //vTaskDelayUntil( &xLastWakeTime, xDelay );
+         vTaskDelayUntil( &xLastWakeTime, xDelay );
       }         
   }
   
@@ -192,7 +201,7 @@
    if((NULL != xEventGroupHandle) && (NULL != xSyncTransmission))
    {
       xTaskCreate( S3_projectInit, "Project Init", 100, NULL, 5, NULL );
-      xTaskCreate( MessageTransmitter, "Message Transmitter", 100, NULL, 4, NULL );
+      xTaskCreate( MessageTransiever, "Message Transiever", 100, NULL, 4, NULL );
       //xTaskCreate( MessageReciever, "Message Reciever", 100, NULL, 4, NULL );
       xTaskCreate( GetBtnState, "Get Btn State", 100, NULL, 2, NULL );      
       //xTaskCreate( vSenderTask, "Sender1", 1000, ( void * ) 100, 1, NULL );

@@ -7,6 +7,7 @@
 //volatile uint8_t gu8_TX_CompleteFlag = 0;    /* Transmit complete software flag */
 static void (*tx_call_back)(void) = NULL;
 static void (*rx_call_back)(void) = NULL;
+static void (*udre_call_back)(void) = NULL;
 /* TX/RX notifications */
 static uint8_t gu8_txNotification = 0;
 static uint8_t gu8_rxNotification = 0;
@@ -93,9 +94,17 @@ void UsartWriteTx(uint8_t * data_byte)
    if(NULL != data_byte)
    {
       /* Write value  to UDR */
-      UDR = *data_byte;     
+      UDR = *data_byte;
       /* notify Success */
-      //gu8_txNotification = USART_BYTE_WRITE_SUCCESS;      
+      //gu8_txNotification = USART_BYTE_WRITE_SUCCESS;
+
+      //check UDR is ready for the next byte : by checking UDRE flag 
+      /*
+      if(0 == (UCSRA & 0x20))
+      {
+            
+      }
+      */           
    }
    else
    {
@@ -203,6 +212,30 @@ EnumUSARTError_t USART_SetTxCallBack(void (*call_back_ptr)(void))
 }
 
 /*
+*  Description : Set UDRE Call back
+*
+*  @param void (*call_back_ptr)(void)
+*
+*  @return EnumUSARTError_t
+*/
+EnumUSARTError_t USART_Set_UDRE_CallBack(void (*call_back_ptr)(void))
+{
+   uint8_t au8_errorState = 0;
+   if(NULL != call_back_ptr)
+   {
+      udre_call_back = call_back_ptr;
+      /* report success */
+      au8_errorState = USART_CALL_BACK_SET_SUCCESS;
+   }
+   else
+   {
+      /* report fail */
+      au8_errorState = INVALID_USART_INPUT_PARAMS;
+   }
+   return au8_errorState;
+}
+
+/*
 *  Description : Set Rx call back.
 *
 *  @param void (*call_back_ptr)(void)
@@ -240,10 +273,11 @@ ISR_USART_RX()
 /*
 * USART when data register is empty
 */
-//ISR_USART_UDRE()
-//{
-   /* if data register is empty : you can write a new character. */            
-//}
+ISR_USART_UDRE()
+{
+   /* if data register is empty : you can write a new character. */ 
+   udre_call_back();           
+}
 
 ISR_USART_TX()
 {

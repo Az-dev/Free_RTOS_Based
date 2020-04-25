@@ -32,6 +32,7 @@
 #define BYTE_SENT       0X01
 #define BYTE_RECIEVED   0X02
 #define SEND_MSG        0X04
+#define UDR_READY       0x08
 
 /*- FUNCTION PROTOTYPES ---------------------------------------------------------------------------------------------------*/
 extern void S3_project(void);
