@@ -36,7 +36,7 @@ void __vector_12(void)
 
 /*ISR_USART_RX_COMPLETE*/
 #define ISR_USART_RX()\
-void __vector_13(void) __attribute__ ((signal, used , externally_visible));\
+void __vector_13(void) __attribute__ ((signal , used , externally_visible));\
 void __vector_13(void)
 
 /*ISR_USART_DATA_REGISTER_EMPTY*/
@@ -46,7 +46,7 @@ void __vector_14(void)
 
 /*ISR_USART_TX_COMPLETE*/
 #define ISR_USART_TX()\
-void __vector_15(void) __attribute__ ((signal, used , externally_visible));\
+void __vector_15(void) __attribute__ ((signal , used , externally_visible));\
 void __vector_15(void)
 
 #endif /* INTERRUPT_H_ */
