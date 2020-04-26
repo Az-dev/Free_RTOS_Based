@@ -144,7 +144,7 @@ void UsartGetRxState(uint8_t * state)
 */
 //EnumUSARTError_t getReceptionState(void)
 //{
-   /* define error state*/
+//   /* define error state*/
 //    uint8_t au8_errorState = 0;
 //    if(gu8_RX_CompleteFlag == 1)
 //    {
@@ -158,6 +158,39 @@ void UsartGetRxState(uint8_t * state)
 //    }
 //    return au8_errorState;   
 //}
+
+/* 
+*  Description : get UDR status
+*
+*  @param 
+*
+*  @return 
+*/
+EnumUSARTError_t Get_UDR_Status(uint8_t * state)
+{
+   /*Define error state */
+   uint8_t au8_errorState = 0;
+   if(NULL != state)
+   {
+      /* Check If UDRE flag is set or not */
+      if(UCSRA & (0x20))
+      {
+         /* UDRE is set : UDR is Empty*/
+         *state = UDR_EMPTY;    
+      }
+      else
+      {
+         /* UDRE is set : UDR is not Empty*/
+         *state = UDR_FULL;    
+      } 
+   }
+   else
+   {
+      au8_errorState = INVALID_USART_INPUT_PARAMS;
+   }
+   return au8_errorState;
+   
+}
 
 
 /*
