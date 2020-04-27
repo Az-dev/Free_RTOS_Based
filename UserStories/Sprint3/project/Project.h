@@ -29,10 +29,18 @@
 #define NO_ACTION 9
 
 /* Event group bits */
-#define BYTE_SENT       0X01
-#define BYTE_RECIEVED   0X02
-#define SEND_MSG        0X04
-#define UDR_READY       0x08
+#define BYTE_SENT             0X01
+#define BYTE_RECIEVED         0X02
+#define SEND_MSG              0X04
+
+/* LCD states */
+#define NO_LCD_ACTION         0
+#define PRINT_RECEIVED_MSG    1
+#define CLEAR_LCD             2
+
+
+/* Message Size */
+#define MESSAGE_SIZE    16
 
 /*- FUNCTION PROTOTYPES ---------------------------------------------------------------------------------------------------*/
 extern void S3_project(void);

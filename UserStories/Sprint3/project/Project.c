@@ -22,10 +22,11 @@
  #include "../../../RTOS_AVR_PORT/event_groups.h"
  #include "../../../RTOS_AVR_PORT/semphr.h"
  /* GLOBALS -----------------------------------------------------------------------------------------------------------------*/
- static uint8_t gau8_MessageToSend[16] = "hellow there";
- static uint8_t gau8_RecievedMessage[16]={0};
+ static uint8_t gau8_MessageToSend[MESSAGE_SIZE] = "12345679";
+ static uint8_t gau8_RecievedMessage[MESSAGE_SIZE] = "4";
  static EventGroupHandle_t xEventGroupHandle = NULL;
  SemaphoreHandle_t xSyncTransmission = NULL;
+ static uint8_t gu8_LCD_Flag = NO_LCD_ACTION;
  /*- FUNCTION DEFINITIONS ---------------------------------------------------------------------------------------------------*/
  /*---------- Call backs definitions ----------*/
  static void TxCallBack(void)
@@ -53,7 +54,11 @@
    USART_SetTxCallBack(TxCallBack);   
    USART_SetRxCallBack(RxCallBack);
    /* Init pushbtn*/
-   PUSHBTN_Config();   
+   PUSHBTN_Config();
+   /* Init LCD */
+   LCD_init();
+   //LCD_clear();
+   LCD_gotoRowColumn(1,1);   
    for(;;)
    {
       vTaskDelete(NULL);
@@ -64,24 +69,48 @@
  
   static void PrintMessage(void * param)
   {
-      /* switch transmission state (transmit or receive )*/
-      //switch(/*transmission type*/)
-      //{
-      //   case /*Transmit*/:            
-            /* move to the upper row */
-            /* print out the string on LCD*/
-      //   break;
-      //   case /*Received*/:            
-            /* move to the lower low */
-            /* print out the string on LCD*/
-            /* xDelay = 2s */
-      //   break;
-      //   case /* clear display_after_xDelay*/:
-      //   case /* clear display_btn_pressed */:
-            /* clear display_after_xDelay or display_btn_pressed flags */
-            /* clear LCD */
-      //   break;
-      //}
+      
+      /* Define Last wake time */
+      TickType_t xLastWakeTime;
+      /* Time delay value in ms*/
+      TickType_t xDelay = pdMS_TO_TICKS(60);
+      /* Initialize last wake time */
+      xLastWakeTime = xTaskGetTickCount();      
+      while(1)
+      {
+         /* switch message type (transmit or receive )*/
+         switch(gu8_LCD_Flag)
+         {
+            //case PRINT_SENT_MSG:
+               /* move to the upper row */               
+               //LCD_gotoRowColumn(1,1);              
+               /* print out the string on LCD*/
+               //LCD_displayString(gau8_MessageToSend);
+            //break;
+            case PRINT_RECEIVED_MSG:               
+               /* move to the lower low */
+               LCD_gotoRowColumn(2,1);
+               /* print out the string on LCD*/
+               LCD_displayString((uint8_t *)(&gau8_RecievedMessage));
+               /* xDelay = 2s */
+               xDelay = pdMS_TO_TICKS_CUSTOM(2000);               
+               /* Set event to clear */
+               gu8_LCD_Flag = CLEAR_LCD;               
+            break;
+            case CLEAR_LCD:               
+               //   case /* clear display_btn_pressed */:
+               /* clear display_after_xDelay or display_btn_pressed flags */
+               /* xDelay = 33ms */
+               xDelay = pdMS_TO_TICKS(60);
+               /* clear LCD */
+               LCD_clear();
+               /* Set LCD Flag to no action */
+               gu8_LCD_Flag = NO_LCD_ACTION;
+            break;
+         }
+         /* force moving task to block state after every wait iteration to switch to reception */
+         vTaskDelayUntil( &xLastWakeTime, xDelay );
+      }             
   }
 
   static void GetBtnState(void * param)
@@ -90,7 +119,7 @@
       /* Define Last wake time */
       TickType_t xLastWakeTime;
       /* Time delay value in ms*/
-      const TickType_t xDelay = pdMS_TO_TICKS(20);
+      const TickType_t xDelay = pdMS_TO_TICKS(10);
       /* Initialize last wake time */
       xLastWakeTime = xTaskGetTickCount();
 
@@ -115,7 +144,8 @@
 
   static void MessageTransiever(void * param)
   { 
-      uint8_t index = 0;
+      uint8_t au8_txBufferIndex = 0;
+      uint8_t au8_rxBufferIndex = 0;
       /* Define Last wake time */
       TickType_t xLastWakeTime;
       /* Time delay value in ms*/
@@ -133,29 +163,40 @@
          {
             case BYTE_RECIEVED:                              
                /*waits until byte_reception_complete event bit is raised 
-               if true write the next byte(from MessageRecieved )from UDR + increment index */               
-               /* Read UDR */               
-               UsartReadRx(&gau8_RecievedMessage[index]); 
-               //ResetUDR();              
+               if true write the next byte(from MessageRecieved )from UDR + increment index */
+               if((au8_rxBufferIndex < MESSAGE_SIZE))
+               {
+                  au8_rxBufferIndex++;
+                  /* Read UDR */
+                  UsartReadRx(&gau8_RecievedMessage[au8_rxBufferIndex]);
+                  PORTC_DATA = gau8_RecievedMessage[au8_rxBufferIndex];
+               }               
+               else
+               {
+                  /* triggers display received msg event */
+                  gu8_LCD_Flag = PRINT_RECEIVED_MSG;                  
+                  /* Reset index */
+                  au8_rxBufferIndex = 0;
+               }                            
             break;
             case SEND_MSG:
-               index++;
-               UsartWriteTx(&gau8_MessageToSend[index]);
+               au8_txBufferIndex++;
+               UsartWriteTx(&gau8_MessageToSend[au8_txBufferIndex]);
             break;
             case BYTE_SENT:                         
                /* write byte to UDR */
-               if('\0' != gau8_MessageToSend[index])
+               if(('\0' != gau8_MessageToSend[au8_txBufferIndex]) || (MESSAGE_SIZE > au8_txBufferIndex))
                {
                   //_delay_ms(5);   /* a delay between the consequent write operations */
-                  index++;                  
-                  UsartWriteTx(&gau8_MessageToSend[index]);                  
+                  au8_txBufferIndex++;                  
+                  UsartWriteTx(&gau8_MessageToSend[au8_txBufferIndex]);                  
                }
                else
                {
                   /* wait for next btn action */
                   //xEventGroupWaitBits(xEventGroupHandle,(const EventBits_t)SEND_MSG,pdTRUE,pdFALSE,portMAX_DELAY);
                   /*reset index */
-                  index = 0;
+                  au8_txBufferIndex = 0;
                }
             break;            
          }         
@@ -173,8 +214,11 @@
    if((NULL != xEventGroupHandle) && (NULL != xSyncTransmission))
    {
       xTaskCreate( S3_projectInit, "Project Init", 100, NULL, 5, NULL );
-      xTaskCreate( MessageTransiever, "Message Transiever", 100, NULL, 4, NULL );      
-      xTaskCreate( GetBtnState, "Get Btn State", 100, NULL, 2, NULL );      
+      //xTaskCreate( PrintMessage, "Print Message", 100, NULL, 4, NULL );
+      xTaskCreate( PrintMessage, "Print Message", 250, NULL, 4, NULL );
+      xTaskCreate( MessageTransiever, "Message Transiever", 100, NULL, 3, NULL );      
+      xTaskCreate( GetBtnState, "Get Btn State", 100, NULL, 2, NULL );
+            
       //xTaskCreate( vSenderTask, "Sender1", 1000, ( void * ) 100, 1, NULL );
       //xTaskCreate( vSenderTask, "Sender2", 1000, ( void * ) 200, 1, NULL );
       /* Create the task that will read from the queue. The task is created with
