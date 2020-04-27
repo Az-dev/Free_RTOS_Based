@@ -131,9 +131,7 @@
          
          switch(au8_EventGroupVal)
          {
-            case BYTE_RECIEVED:
-               /* clear bits */
-               xEventGroupClearBits(xEventGroupHandle,(const EventBits_t)(BYTE_RECIEVED));               
+            case BYTE_RECIEVED:                              
                /*waits until byte_reception_complete event bit is raised 
                if true write the next byte(from MessageRecieved )from UDR + increment index */               
                /* Read UDR */               
@@ -144,9 +142,7 @@
                index++;
                UsartWriteTx(&gau8_MessageToSend[index]);
             break;
-            case BYTE_SENT:
-               /* clear bits */
-               xEventGroupClearBits(xEventGroupHandle,(const EventBits_t)(BYTE_SENT));           
+            case BYTE_SENT:                         
                /* write byte to UDR */
                if('\0' != gau8_MessageToSend[index])
                {
