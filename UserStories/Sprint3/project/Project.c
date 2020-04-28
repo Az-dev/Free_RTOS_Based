@@ -22,8 +22,6 @@
  #include "../../../RTOS_AVR_PORT/event_groups.h"
  #include "../../../RTOS_AVR_PORT/semphr.h"
  /* GLOBALS -----------------------------------------------------------------------------------------------------------------*/
- //static uint8_t gau8_MessageToSend[MESSAGE_SIZE] = "12345679";
- //static uint8_t gau8_RecievedMessage[MESSAGE_SIZE] = "hellow there";
  static EventGroupHandle_t xEventGroupHandle = NULL;
  SemaphoreHandle_t xSyncTransmission = NULL;
  static uint8_t gu8_LCD_Flag = NO_DISPLAY_ACTION;
@@ -100,7 +98,7 @@
                if(gu8_terminatingChar != au8_temp_Rx_Char)
                {
                   /* store character in xQueueRx */
-                  xQueueSendToBack(xQueueRx,&au8_temp_Rx_Char,pdMS_TO_TICKS(2));
+                  xQueueSendToBack(xQueueRx,&au8_temp_Rx_Char,pdMS_TO_TICKS(1));
                }
                else
                {
@@ -111,7 +109,7 @@
             case SEND_MSG:           
             case BYTE_SENT:                         
                /* write byte to UDR from xQueueTx*/
-               if(pdPASS == xQueueReceive(xQueueTx,&au8_temp_Tx_Char,pdMS_TO_TICKS(2)))
+               if(pdPASS == xQueueReceive(xQueueTx,&au8_temp_Tx_Char,pdMS_TO_TICKS(5)))
                {                                   
                   UsartWriteTx(&au8_temp_Tx_Char);                  
                }                             
@@ -127,7 +125,7 @@
      /* Define Last wake time */
      TickType_t xLastWakeTime;
      /* Time delay value in ms*/
-     TickType_t xDelay = pdMS_TO_TICKS(15);
+     TickType_t xDelay = pdMS_TO_TICKS(25);
      /* Initialize last wake time */
      xLastWakeTime = xTaskGetTickCount();
      /* keypad character/ received character to be displayed on LCD */
@@ -143,7 +141,7 @@
               /* move to the lower low */
               LCD_gotoRowColumn(2,1);
               /* print out the string on LCD : by reading each character from xQueueRx*/
-              while(pdPASS == xQueueReceive(xQueueRx,&au8_charToDisplay,pdMS_TO_TICKS(2)))
+              while(pdPASS == xQueueReceive(xQueueRx,&au8_charToDisplay,pdMS_TO_TICKS(1)))
               {
                  LCD_displayChar(au8_charToDisplay);
               }
@@ -156,7 +154,7 @@
               //   case /* clear display_btn_pressed */:
               /* clear display_after_xDelay or display_btn_pressed flags */
               /* xDelay = 33ms */
-              xDelay = pdMS_TO_TICKS(15);
+              xDelay = pdMS_TO_TICKS(25);
               /* clear LCD */
               LCD_clear();
               /* Set LCD Flag to no action */
@@ -167,7 +165,7 @@
            default:
               /* move to the upper row */
               LCD_gotoRowColumn(1,au8_colIndex);
-              if(pdPASS == xQueueReceive(xQueueKeypadDisplay,&au8_charToDisplay,pdMS_TO_TICKS(2)))
+              if(pdPASS == xQueueReceive(xQueueKeypadDisplay,&au8_charToDisplay,pdMS_TO_TICKS(1)))
               {
                  LCD_displayChar(au8_charToDisplay);
                  au8_colIndex++;
@@ -184,7 +182,7 @@
      /* Define Last wake time */
      TickType_t xLastWakeTime;
      /* Time delay value in ms*/
-     const TickType_t xDelay = pdMS_TO_TICKS(19);
+     const TickType_t xDelay = pdMS_TO_TICKS(40);
      /* Initialize last wake time */
      xLastWakeTime = xTaskGetTickCount();
 
@@ -266,10 +264,10 @@
    if((NULL != xEventGroupHandle) && (NULL != xSyncTransmission) && (NULL != xQueueTx) && (NULL != xQueueRx) && (NULL != xQueueKeypadDisplay))
    {
       xTaskCreate( S3_projectInit, "Project Init", 100, NULL, 5, NULL );
-      //xTaskCreate( MessageTransiever, "Message Transiever", 100, NULL, 4, NULL );      
-      xTaskCreate( PrintMessage, "Print Message", 200, NULL, 3, NULL );
-      //xTaskCreate( GetBtnState, "Get Btn State", 100, NULL, 2, NULL );      
-      xTaskCreate( KeypadScanner, "Keypad Scanner", 100, NULL, 1, NULL );          
+      xTaskCreate( MessageTransiever, "Message Transiever", 100, NULL, 4, NULL );      
+      xTaskCreate( PrintMessage, "Print Message", 200, NULL, 2, NULL );
+      xTaskCreate( GetBtnState, "Get Btn State", 100, NULL, 1, NULL );      
+      xTaskCreate( KeypadScanner, "Keypad Scanner", 100, NULL, 3, NULL );          
       vTaskStartScheduler();   
    }
    else
