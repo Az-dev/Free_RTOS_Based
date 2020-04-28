@@ -223,11 +223,17 @@
      const TickType_t xDelay = pdMS_TO_TICKS(10);
      /* Initialize last wake time */
      xLastWakeTime = xTaskGetTickCount();
-
-     
+     /* scan times*/
+     int au8_scanTimes = 0;
      while(1)
-     {        
-        Keypad_Scan(key_states);
+     { 
+        /* scanning keypad for 2 times */
+        for(au8_scanTimes=0; au8_scanTimes < 2; au8_scanTimes++)
+        {
+            Keypad_Scan(key_states);
+            _delay_us(200);
+        }
+        /* iterating over scanned states */        
         uint8_t au8_iter = 0;
         for(;au8_iter < KEYS_NUM; au8_iter++)
         {
@@ -255,15 +261,15 @@
    /* Create queues */
    xQueueTx = xQueueCreate( 16, sizeof( uint8_t ) );
    xQueueRx = xQueueCreate( 16, sizeof( uint8_t ) );
-   xQueueKeypadDisplay = xQueueCreate( 3, sizeof( uint8_t ) );   
+   xQueueKeypadDisplay = xQueueCreate( 1, sizeof( uint8_t ) );   
    /* Check against successful queue creation */
    if((NULL != xEventGroupHandle) && (NULL != xSyncTransmission) && (NULL != xQueueTx) && (NULL != xQueueRx) && (NULL != xQueueKeypadDisplay))
    {
       xTaskCreate( S3_projectInit, "Project Init", 100, NULL, 5, NULL );
       //xTaskCreate( MessageTransiever, "Message Transiever", 100, NULL, 4, NULL );      
-      xTaskCreate( PrintMessage, "Print Message", 200, NULL, 1, NULL );
+      xTaskCreate( PrintMessage, "Print Message", 200, NULL, 3, NULL );
       //xTaskCreate( GetBtnState, "Get Btn State", 100, NULL, 2, NULL );      
-      xTaskCreate( KeypadScanner, "Keypad Scanner", 100, NULL, 3, NULL );          
+      xTaskCreate( KeypadScanner, "Keypad Scanner", 100, NULL, 1, NULL );          
       vTaskStartScheduler();   
    }
    else
