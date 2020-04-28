@@ -37,7 +37,7 @@
  static void TxCallBack(void)
  {   
    /* on successful transmission : raise byte_transmission_complete event bit && byte to be transmitted is not null */
-   xEventGroupSetBits(xEventGroupHandle,(const EventBits_t)BYTE_SENT);     
+   xEventGroupSetBits(xEventGroupHandle,(const EventBits_t)BYTE_SENT);       
  } 
   
  static void RxCallBack(void)
@@ -45,8 +45,7 @@
    /* on successful reception : raise byte_reception_complete event bit && byte to be received is not null */
    xEventGroupSetBits(xEventGroupHandle,(const EventBits_t)BYTE_RECIEVED);
    /* forcing getting out from call back by forcing context switch with taskYIELD */
-   taskYIELD();
-   //return;   
+   taskYIELD();      
  }
  /*--------- End call back definitions --------*/
 
@@ -91,14 +90,14 @@
          au8_EventGroupVal = xEventGroupWaitBits(xEventGroupHandle,(const EventBits_t)(BYTE_SENT|SEND_MSG|BYTE_RECIEVED),pdTRUE,pdFALSE,pdTRUE);         
          switch(au8_EventGroupVal)
          {
-            case BYTE_RECIEVED:
+            case BYTE_RECIEVED:               
                /* Read UDR */
                UsartReadRx(&au8_temp_Rx_Char);
                /* Check end of transfer */
                if(gu8_terminatingChar != au8_temp_Rx_Char)
                {
                   /* store character in xQueueRx */
-                  xQueueSendToBack(xQueueRx,&au8_temp_Rx_Char,pdMS_TO_TICKS(1));
+                  xQueueSendToBack(xQueueRx,&au8_temp_Rx_Char,pdMS_TO_TICKS(5));
                }
                else
                {
@@ -109,9 +108,9 @@
             case SEND_MSG:           
             case BYTE_SENT:                         
                /* write byte to UDR from xQueueTx*/
-               if(pdPASS == xQueueReceive(xQueueTx,&au8_temp_Tx_Char,pdMS_TO_TICKS(5)))
+               if(pdPASS == xQueueReceive(xQueueTx,&au8_temp_Tx_Char,pdMS_TO_TICKS(1)))
                {                                   
-                  UsartWriteTx(&au8_temp_Tx_Char);                  
+                  UsartWriteTx(&au8_temp_Tx_Char);                                    
                }                             
             break;            
          }         
@@ -218,18 +217,20 @@
      /* Define Last wake time */
      TickType_t xLastWakeTime;
      /* Time delay value in ms*/
-     const TickType_t xDelay = pdMS_TO_TICKS(10);
+     const TickType_t xDelay = pdMS_TO_TICKS(13);
      /* Initialize last wake time */
      xLastWakeTime = xTaskGetTickCount();
      /* scan times*/
      int au8_scanTimes = 0;
+     /* key press flage*/
+     uint8_t au8_pressedFlag = 0;
      while(1)
      { 
         /* scanning keypad for 2 times */
         for(au8_scanTimes=0; au8_scanTimes < 2; au8_scanTimes++)
         {
             Keypad_Scan(key_states);
-            _delay_us(200);
+            _delay_us(250);
         }
         /* iterating over scanned states */        
         uint8_t au8_iter = 0;
@@ -238,14 +239,20 @@
            /* check which key pressed or not_pressed */
            if(KEY_PRESSED == key_states[au8_iter])
            {
+              au8_pressedFlag = 1;
               /* Evaluate key value */
-              au8_keyVal = au8_iter + ASCII_OFFSET;
-              /* store it in xQueueTx */
-              xQueueSendToBack(xQueueTx,&au8_keyVal,pdMS_TO_TICKS(1));
-              /* send it to be displayed whith in display queue*/
-              xQueueSendToBack(xQueueKeypadDisplay,&au8_keyVal,pdMS_TO_TICKS(1));
+              au8_keyVal = au8_iter + ASCII_OFFSET;              
            }
         }
+
+        if(1 == au8_pressedFlag)
+        {           
+           /* store it in xQueueTx */
+           xQueueSendToBack(xQueueTx,&au8_keyVal,pdMS_TO_TICKS(1));
+           /* send it to be displayed whith in display queue*/
+           xQueueSendToBack(xQueueKeypadDisplay,&au8_keyVal,pdMS_TO_TICKS(1));
+        }
+        au8_pressedFlag = 0;        
         /* force moving task to block state after every wait iteration to switch to reception */
         vTaskDelayUntil( &xLastWakeTime, xDelay );
      }
@@ -264,10 +271,10 @@
    if((NULL != xEventGroupHandle) && (NULL != xSyncTransmission) && (NULL != xQueueTx) && (NULL != xQueueRx) && (NULL != xQueueKeypadDisplay))
    {
       xTaskCreate( S3_projectInit, "Project Init", 100, NULL, 5, NULL );
-      xTaskCreate( MessageTransiever, "Message Transiever", 100, NULL, 4, NULL );      
-      xTaskCreate( PrintMessage, "Print Message", 200, NULL, 2, NULL );
+      xTaskCreate( MessageTransiever, "Message Transiever", 100, NULL, 2, NULL );      
+      xTaskCreate( PrintMessage, "Print Message", 200, NULL, 3, NULL );
       xTaskCreate( GetBtnState, "Get Btn State", 100, NULL, 1, NULL );      
-      xTaskCreate( KeypadScanner, "Keypad Scanner", 100, NULL, 3, NULL );          
+      xTaskCreate( KeypadScanner, "Keypad Scanner", 100, NULL, 4, NULL );          
       vTaskStartScheduler();   
    }
    else
