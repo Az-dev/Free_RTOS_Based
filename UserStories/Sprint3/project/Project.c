@@ -21,6 +21,8 @@
  #include "../../../RTOS_AVR_PORT/queue.h"
  #include "../../../RTOS_AVR_PORT/event_groups.h"
  #include "../../../RTOS_AVR_PORT/semphr.h"
+ #include "../../../RTOS_AVR_PORT/timers.h"
+ #include "../../../RTOS_AVR_PORT/portmacro.h"
  /* GLOBALS -----------------------------------------------------------------------------------------------------------------*/
  static EventGroupHandle_t xEventGroupHandle = NULL;
  SemaphoreHandle_t xSyncTransmission = NULL;
@@ -34,18 +36,40 @@
 
  /*- FUNCTION DEFINITIONS ---------------------------------------------------------------------------------------------------*/
  /*---------- Call backs definitions ----------*/
- static void TxCallBack(void)
- {   
+ void setRxEvent( void * pvParameter1, uint32_t ulParameter2 )
+ {
+   BaseType_t xHigherPriorityTaskWoken, xResult;
+   /* xHigherPriorityTaskWoken must be initialised to pdFALSE. */
+   xHigherPriorityTaskWoken = pdFALSE;
+   /* on successful reception : raise byte_reception_complete event bit && byte to be received is not null */
+   xResult = xEventGroupSetBitsFromISR(xEventGroupHandle,(const EventBits_t)BYTE_RECIEVED,&xHigherPriorityTaskWoken);
+   taskYIELD();
+ }
+
+ void setTxEvent( void * pvParameter1, uint32_t ulParameter2 )
+ {
+   BaseType_t xHigherPriorityTaskWoken, xResult;
+   /* xHigherPriorityTaskWoken must be initialised to pdFALSE. */
+   xHigherPriorityTaskWoken = pdFALSE;
    /* on successful transmission : raise byte_transmission_complete event bit && byte to be transmitted is not null */
-   xEventGroupSetBits(xEventGroupHandle,(const EventBits_t)BYTE_SENT);       
+   xResult = xEventGroupSetBitsFromISR(xEventGroupHandle,(const EventBits_t)BYTE_SENT,&xHigherPriorityTaskWoken);
+   taskYIELD();
+ }
+
+ static void TxCallBack(void)
+ {
+   BaseType_t xHigherPriorityTaskWoken;
+   xHigherPriorityTaskWoken = pdFALSE;
+   xTimerPendFunctionCallFromISR( setTxEvent,NULL,NULL,&xHigherPriorityTaskWoken ); 
+   taskYIELD();            
  } 
   
  static void RxCallBack(void)
- {  
-   /* on successful reception : raise byte_reception_complete event bit && byte to be received is not null */
-   xEventGroupSetBits(xEventGroupHandle,(const EventBits_t)BYTE_RECIEVED);
-   /* forcing getting out from call back by forcing context switch with taskYIELD */
-   taskYIELD();      
+ {
+   BaseType_t xHigherPriorityTaskWoken;
+   xHigherPriorityTaskWoken = pdFALSE;
+   xTimerPendFunctionCallFromISR( setRxEvent,NULL,NULL,&xHigherPriorityTaskWoken );
+   taskYIELD();       
  }
  /*--------- End call back definitions --------*/
 
@@ -87,7 +111,7 @@
       {
          /*1 - waits until send_message event bit is raised 
          if true write the next byte(from MessageToSendBuffer ) to UDR until you get to the last element in buffer and while send_byte_success*/
-         au8_EventGroupVal = xEventGroupWaitBits(xEventGroupHandle,(const EventBits_t)(BYTE_SENT|SEND_MSG|BYTE_RECIEVED),pdTRUE,pdFALSE,pdTRUE);         
+         au8_EventGroupVal = xEventGroupWaitBits(xEventGroupHandle,(const EventBits_t)(BYTE_SENT|SEND_MSG|BYTE_RECIEVED),pdTRUE,pdFALSE,pdMS_TO_TICKS(10));         
          switch(au8_EventGroupVal)
          {
             case BYTE_RECIEVED:               
@@ -101,6 +125,7 @@
                }
                else
                {
+                  ResetUDR();
                   /* triggers display received msg event */
                   gu8_LCD_Flag = PRINT_RECEIVED_MSG;
                }                                          
