@@ -21,8 +21,6 @@
  #include "../../../RTOS_AVR_PORT/queue.h"
  #include "../../../RTOS_AVR_PORT/event_groups.h"
  #include "../../../RTOS_AVR_PORT/semphr.h"
- #include "../../../RTOS_AVR_PORT/timers.h"
- #include "../../../RTOS_AVR_PORT/portmacro.h"
  /* GLOBALS -----------------------------------------------------------------------------------------------------------------*/
  static EventGroupHandle_t xEventGroupHandle = NULL;
  SemaphoreHandle_t xSyncTransmission = NULL;
@@ -36,40 +34,20 @@
 
  /*- FUNCTION DEFINITIONS ---------------------------------------------------------------------------------------------------*/
  /*---------- Call backs definitions ----------*/
- void setRxEvent( void * pvParameter1, uint32_t ulParameter2 )
- {
-   BaseType_t xHigherPriorityTaskWoken, xResult;
-   /* xHigherPriorityTaskWoken must be initialised to pdFALSE. */
-   xHigherPriorityTaskWoken = pdFALSE;
-   /* on successful reception : raise byte_reception_complete event bit && byte to be received is not null */
-   xResult = xEventGroupSetBitsFromISR(xEventGroupHandle,(const EventBits_t)BYTE_RECIEVED,&xHigherPriorityTaskWoken);
-   taskYIELD();
- }
-
- void setTxEvent( void * pvParameter1, uint32_t ulParameter2 )
- {
-   BaseType_t xHigherPriorityTaskWoken, xResult;
-   /* xHigherPriorityTaskWoken must be initialised to pdFALSE. */
-   xHigherPriorityTaskWoken = pdFALSE;
-   /* on successful transmission : raise byte_transmission_complete event bit && byte to be transmitted is not null */
-   xResult = xEventGroupSetBitsFromISR(xEventGroupHandle,(const EventBits_t)BYTE_SENT,&xHigherPriorityTaskWoken);
-   taskYIELD();
- }
-
  static void TxCallBack(void)
- {
-   BaseType_t xHigherPriorityTaskWoken;
-   xHigherPriorityTaskWoken = pdFALSE;
-   xTimerPendFunctionCallFromISR( setTxEvent,NULL,NULL,&xHigherPriorityTaskWoken ); 
-   taskYIELD();            
+ {   
+   /* on successful transmission : raise byte_transmission_complete event bit && byte to be transmitted is not null */
+   xEventGroupSetBits(xEventGroupHandle,(const EventBits_t)BYTE_SENT);
+   /* forcing getting out from call back by forcing context switch with taskYIELD */
+   taskYIELD();       
  } 
   
  static void RxCallBack(void)
- {
-   BaseType_t xHigherPriorityTaskWoken;
-   xHigherPriorityTaskWoken = pdFALSE;
-   xTimerPendFunctionCallFromISR( setRxEvent,NULL,NULL,&xHigherPriorityTaskWoken );
-   taskYIELD();       
+ {   
+   /* on successful reception : raise byte_reception_complete event bit && byte to be received is not null */
+   xEventGroupSetBits(xEventGroupHandle,(const EventBits_t)BYTE_RECIEVED);   
+   /* forcing getting out from call back by forcing context switch with taskYIELD */
+   taskYIELD();      
  }
  /*--------- End call back definitions --------*/
 
@@ -100,7 +78,7 @@
       /* Define Last wake time */
       TickType_t xLastWakeTime;
       /* Time delay value in ms*/
-      const TickType_t xDelay = pdMS_TO_TICKS(45);
+      const TickType_t xDelay = pdMS_TO_TICKS(20);
       /* Initialize last wake time */
       xLastWakeTime = xTaskGetTickCount();
       EventBits_t au8_EventGroupVal = 0;
@@ -111,17 +89,18 @@
       {
          /*1 - waits until send_message event bit is raised 
          if true write the next byte(from MessageToSendBuffer ) to UDR until you get to the last element in buffer and while send_byte_success*/
-         au8_EventGroupVal = xEventGroupWaitBits(xEventGroupHandle,(const EventBits_t)(BYTE_SENT|SEND_MSG|BYTE_RECIEVED),pdTRUE,pdFALSE,pdMS_TO_TICKS(10));         
+         au8_EventGroupVal = xEventGroupWaitBits(xEventGroupHandle,(const EventBits_t)(BYTE_SENT|SEND_MSG|BYTE_RECIEVED),pdTRUE,pdFALSE,portMAX_DELAY);         
          switch(au8_EventGroupVal)
          {
-            case BYTE_RECIEVED:               
+            case BYTE_RECIEVED:
+               au8_EventGroupVal = 0;               
                /* Read UDR */
                UsartReadRx(&au8_temp_Rx_Char);
                /* Check end of transfer */
                if(gu8_terminatingChar != au8_temp_Rx_Char)
                {
                   /* store character in xQueueRx */
-                  xQueueSendToBack(xQueueRx,&au8_temp_Rx_Char,pdMS_TO_TICKS(5));
+                  xQueueSendToBack(xQueueRx,&au8_temp_Rx_Char,pdMS_TO_TICKS(2));
                }
                else
                {
@@ -131,14 +110,15 @@
                }                                          
             break;
             case SEND_MSG:           
-            case BYTE_SENT:                         
+            case BYTE_SENT:
+               au8_EventGroupVal = 0;                         
                /* write byte to UDR from xQueueTx*/
-               if(pdPASS == xQueueReceive(xQueueTx,&au8_temp_Tx_Char,pdMS_TO_TICKS(1)))
+               if(pdPASS == xQueueReceive(xQueueTx,&au8_temp_Tx_Char,pdMS_TO_TICKS(2)))
                {                                   
                   UsartWriteTx(&au8_temp_Tx_Char);                                    
                }                             
             break;            
-         }         
+         }                  
          /* force moving task to block state after every wait iteration to switch to reception */
          vTaskDelayUntil( &xLastWakeTime, xDelay );
       }         
@@ -149,7 +129,7 @@
      /* Define Last wake time */
      TickType_t xLastWakeTime;
      /* Time delay value in ms*/
-     TickType_t xDelay = pdMS_TO_TICKS(25);
+     TickType_t xDelay = pdMS_TO_TICKS(60);
      /* Initialize last wake time */
      xLastWakeTime = xTaskGetTickCount();
      /* keypad character/ received character to be displayed on LCD */
@@ -163,7 +143,7 @@
         {
            case PRINT_RECEIVED_MSG:
               /* move to the lower low */
-              LCD_gotoRowColumn(2,1);
+              LCD_gotoRowColumn(2,0);
               /* print out the string on LCD : by reading each character from xQueueRx*/
               while(pdPASS == xQueueReceive(xQueueRx,&au8_charToDisplay,pdMS_TO_TICKS(1)))
               {
@@ -178,7 +158,7 @@
               //   case /* clear display_btn_pressed */:
               /* clear display_after_xDelay or display_btn_pressed flags */
               /* xDelay = 33ms */
-              xDelay = pdMS_TO_TICKS(25);
+              xDelay = pdMS_TO_TICKS(60);
               /* clear LCD */
               LCD_clear();
               /* Set LCD Flag to no action */
@@ -206,7 +186,7 @@
      /* Define Last wake time */
      TickType_t xLastWakeTime;
      /* Time delay value in ms*/
-     const TickType_t xDelay = pdMS_TO_TICKS(40);
+     const TickType_t xDelay = pdMS_TO_TICKS(50);
      /* Initialize last wake time */
      xLastWakeTime = xTaskGetTickCount();
 
@@ -242,20 +222,20 @@
      /* Define Last wake time */
      TickType_t xLastWakeTime;
      /* Time delay value in ms*/
-     const TickType_t xDelay = pdMS_TO_TICKS(13);
+     const TickType_t xDelay = pdMS_TO_TICKS(40);
      /* Initialize last wake time */
      xLastWakeTime = xTaskGetTickCount();
      /* scan times*/
      int au8_scanTimes = 0;
-     /* key press flage*/
+     /* key press flag */
      uint8_t au8_pressedFlag = 0;
      while(1)
-     { 
+     {
         /* scanning keypad for 2 times */
         for(au8_scanTimes=0; au8_scanTimes < 2; au8_scanTimes++)
         {
             Keypad_Scan(key_states);
-            _delay_us(250);
+            _delay_us(60);
         }
         /* iterating over scanned states */        
         uint8_t au8_iter = 0;
@@ -296,10 +276,11 @@
    if((NULL != xEventGroupHandle) && (NULL != xSyncTransmission) && (NULL != xQueueTx) && (NULL != xQueueRx) && (NULL != xQueueKeypadDisplay))
    {
       xTaskCreate( S3_projectInit, "Project Init", 100, NULL, 5, NULL );
-      xTaskCreate( MessageTransiever, "Message Transiever", 100, NULL, 2, NULL );      
+      xTaskCreate( KeypadScanner, "Keypad Scanner", 100, NULL, 4, NULL );
       xTaskCreate( PrintMessage, "Print Message", 200, NULL, 3, NULL );
+      xTaskCreate( MessageTransiever, "Message Transiever", 100, NULL, 2, NULL );      
       xTaskCreate( GetBtnState, "Get Btn State", 100, NULL, 1, NULL );      
-      xTaskCreate( KeypadScanner, "Keypad Scanner", 100, NULL, 4, NULL );          
+                
       vTaskStartScheduler();   
    }
    else
