@@ -24,7 +24,10 @@
  /* GLOBALS -----------------------------------------------------------------------------------------------------------------*/
  static EventGroupHandle_t xEventGroupHandle = NULL;
  SemaphoreHandle_t xSyncTransmission = NULL;
+ /* LCD Flag */
  static uint8_t gu8_LCD_Flag = NO_DISPLAY_ACTION;
+ /* LED Flag */
+ static uint8_t gu8_LED_Flag = NO_LED_ACTION;
  /* Define communication queues*/
  QueueHandle_t xQueueTx = NULL;
  QueueHandle_t xQueueRx = NULL;
@@ -66,7 +69,10 @@
    //LCD_clear();
    LCD_gotoRowColumn(1,1);
    /* Init KeyPad */
-   Keypad_Init();   
+   Keypad_Init();
+   /* Init leds */ 
+   Led_Init(LED_1);
+   Led_Init(LED_2);  
    for(;;)
    {
       vTaskDelete(NULL);
@@ -107,6 +113,8 @@
                   ResetUDR();
                   /* triggers display received msg event */
                   gu8_LCD_Flag = PRINT_RECEIVED_MSG;
+                  /* trigger led 1 to be on */
+                  gu8_LED_Flag = LED_1_ON;
                }                                          
             break;
             case SEND_MSG:           
@@ -114,9 +122,9 @@
                au8_EventGroupVal = 0;                         
                /* write byte to UDR from xQueueTx*/
                if(pdPASS == xQueueReceive(xQueueTx,&au8_temp_Tx_Char,pdMS_TO_TICKS(2)))
-               {                                   
+               {                                        
                   UsartWriteTx(&au8_temp_Tx_Char);                                    
-               }                             
+               }                                          
             break;            
          }                  
          /* force moving task to block state after every wait iteration to switch to reception */
@@ -203,6 +211,8 @@
               xQueueSendToBack(xQueueTx,&gu8_terminatingChar,pdMS_TO_TICKS(2));
               /* clear the printed message on display */
               gu8_LCD_Flag = CLEAR_LCD;
+              /* trigger led 2 to be on */
+              gu8_LED_Flag = LED_2_ON;
            break;
            case RELEASED:
               /* send task to block state */
@@ -263,6 +273,46 @@
      }
   }
 
+  static void ledControl(void * param)
+  {
+      /* Define Last wake time */
+      TickType_t xLastWakeTime;
+      /* Time delay value in ms*/
+      TickType_t xDelay = pdMS_TO_TICKS(70);
+      /* Initialize last wake time */
+      xLastWakeTime = xTaskGetTickCount();
+      while(1)
+      {
+         switch(gu8_LED_Flag)
+         {
+            case LED_2_ON:               
+               /* turn led on */
+               Led_On(LED_2);
+               /* Led 2 is on for 200ms */
+               xDelay = pdMS_TO_TICKS(200);
+               /* pull down the flag */
+               gu8_LED_Flag = NO_LED_ACTION;
+            break;
+            case LED_1_ON:               
+               /* turn led on */
+               Led_On(LED_1);
+               /* Led 1 is on for 500ms */
+               xDelay = pdMS_TO_TICKS(500);
+               /* pull down the flag */
+               gu8_LED_Flag = NO_LED_ACTION;
+            break;
+            case NO_LED_ACTION:
+               Led_Off(LED_1);
+               Led_Off(LED_2);
+               /* reset xDelay back to its default */
+               xDelay = pdMS_TO_TICKS(70);
+            break;
+         }
+         /* force moving task to block state after every wait iteration to switch to reception */
+         vTaskDelayUntil( &xLastWakeTime, xDelay );
+      }      
+  }
+
  void S3_project(void)
  {      
    /* Creating an event group */
@@ -275,12 +325,12 @@
    /* Check against successful queue creation */
    if((NULL != xEventGroupHandle) && (NULL != xSyncTransmission) && (NULL != xQueueTx) && (NULL != xQueueRx) && (NULL != xQueueKeypadDisplay))
    {
-      xTaskCreate( S3_projectInit, "Project Init", 100, NULL, 5, NULL );
-      xTaskCreate( KeypadScanner, "Keypad Scanner", 100, NULL, 4, NULL );
-      xTaskCreate( PrintMessage, "Print Message", 200, NULL, 3, NULL );
-      xTaskCreate( MessageTransiever, "Message Transiever", 100, NULL, 2, NULL );      
-      xTaskCreate( GetBtnState, "Get Btn State", 100, NULL, 1, NULL );      
-                
+      xTaskCreate( S3_projectInit, "Project Init", 100, NULL, 6, NULL );
+      xTaskCreate( KeypadScanner, "Keypad Scanner", 100, NULL, 5, NULL );
+      xTaskCreate( PrintMessage, "Print Message", 200, NULL, 4, NULL );
+      xTaskCreate( MessageTransiever, "Message Transiever", 100, NULL, 3, NULL );
+      xTaskCreate( ledControl, "led Control", 100, NULL, 2, NULL );      
+      xTaskCreate( GetBtnState, "Get Btn State", 100, NULL, 1, NULL );                
       vTaskStartScheduler();   
    }
    else

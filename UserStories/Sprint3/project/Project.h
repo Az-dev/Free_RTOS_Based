@@ -39,6 +39,11 @@
 #define PRINT_RECEIVED_MSG    1
 #define CLEAR_LCD             2
 
+/* LED States */
+#define NO_LED_ACTION 0
+#define LED_1_ON      1
+#define LED_2_ON      2
+
 /* Message Size */
 #define MESSAGE_SIZE    16
 
