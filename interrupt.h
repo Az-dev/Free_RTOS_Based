@@ -1,8 +1,8 @@
 #ifndef INTERRUPT_H_
 #define INTERRUPT_H_
 /*- FUNCTION-LIKE MACROS ---------------------------------------------------------------------------------------------------*/
-#define sei() __asm__ __volatile__ ("sei" ::: "memory")
-#define cli() __asm__ __volatile__ ("cli" ::: "memory")
+#define sei() __asm__ __volatile__ ("sei" ::)
+#define cli() __asm__ __volatile__ ("cli" ::)
 
 /*ISR_TIMER0_OVF*/
 #define ISR_TIMER0_OVF()\
