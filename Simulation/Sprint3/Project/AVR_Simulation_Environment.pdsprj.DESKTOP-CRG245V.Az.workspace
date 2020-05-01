@@ -6,59 +6,61 @@
  </FRAME>
  <MODULE name="VSMDEBUG">
   <PWI>
-   <POPUP w="1129" x="67" flags="00000003" y="700" h="200" pid="0" iid="-1">
+   <POPUP w="582" x="225" flags="00008003" y="791" h="200" pid="0" iid="-1">
     <PROPERTIES>
-     <ITEM name="Message Column Width">857</ITEM>
+     <ITEM name="Message Column Width">310</ITEM>
      <ITEM name="ShowGrid">No</ITEM>
      <ITEM name="Source Column Width">100</ITEM>
      <ITEM name="Time Column Width">120</ITEM>
      <ITEM name="Version">100</ITEM>
     </PROPERTIES>
    </POPUP>
-   <POPUP w="739" x="1085" flags="00008033" y="435" h="585" pid="1" iid="-1">
+   <POPUP w="754" x="742" flags="00000032" y="673" h="347" pid="1" iid="-1">
     <PROPERTIES>
-     <ITEM name="Address Column Width">81</ITEM>
+     <ITEM name="Address Column Width">144</ITEM>
      <ITEM name="AutoResize">No</ITEM>
      <ITEM name="Gridlines">Yes</ITEM>
      <ITEM name="Item 0">"UDR","0x002C",00000001,0000000D,12,1,2,45CB0000,0,00000000,00000000</ITEM>
-     <ITEM name="Item 1">"UCSRA","0x002B",00000001,0000000D,11,1,2,F0130000,0,00000000,00000000</ITEM>
-     <ITEM name="Item 2">"UDR","0x002C",00000010,0000000D,12,1,2,45CB0000,0,00000000,00000000</ITEM>
-     <ITEM name="Item 3">"UCSRA","0x002B",00000010,0000000D,11,1,2,F0130000,0,00000000,00000000</ITEM>
-     <ITEM name="Item 4">"SREG","0x005F",00000001,0000000D,63,1,2,BC310000,0,00000000,00000000</ITEM>
+     <ITEM name="Item 1">"UDR","0x002C",00000010,0000000D,12,1,2,45CB0000,1,00000000,00000000</ITEM>
+     <ITEM name="Item 2">"UCSRA","0x002B",00000010,0000000D,11,1,2,F0130000,0,00000000,00000000</ITEM>
+     <ITEM name="Item 3">"UCSRA","0x002B",00000001,0000000D,11,1,2,F0130000,0,00000000,00000000</ITEM>
+     <ITEM name="Item 4">"PORTC","0x0035",00000001,0000000D,21,1,2,BE4A0000,1,00000000,00000000</ITEM>
      <ITEM name="Item 5">"PORTC","0x0035",00000010,0000000D,21,1,2,BE4A0000,1,00000000,00000000</ITEM>
-     <ITEM name="Item 6">"PORTC","0x0035",00000001,0000000D,21,1,2,BE4A0000,1,00000000,00000000</ITEM>
+     <ITEM name="Item 6">"PORTC","0x0035",00000010,0000000D,21,1,2,BE4A0000,1,00000000,00000000</ITEM>
      <ITEM name="Item 7">"PORTC","0x0035",00000010,0000000D,21,1,2,BE4A0000,1,00000000,00000000</ITEM>
      <ITEM name="Name Column Width">188</ITEM>
      <ITEM name="ShowAddresses">Yes</ITEM>
      <ITEM name="ShowPreviousValues">No</ITEM>
      <ITEM name="ShowTypes">No</ITEM>
      <ITEM name="ShowWatchPoint">Yes</ITEM>
-     <ITEM name="TriggerMode">2</ITEM>
-     <ITEM name="Value Column Width">81</ITEM>
+     <ITEM name="TriggerMode">0</ITEM>
+     <ITEM name="Value Column Width">123</ITEM>
      <ITEM name="Version">100</ITEM>
-     <ITEM name="Watch Expression Column Width">81</ITEM>
+     <ITEM name="Watch Expression Column Width">220</ITEM>
      <ITEM name="WatchPoint 0">1,0,00000000,</ITEM>
      <ITEM name="WatchPoint 1">1,0,00000000,</ITEM>
-     <ITEM name="WatchPoint 10">0,0,00000000,</ITEM>
+     <ITEM name="WatchPoint 10">1,0,00000000,</ITEM>
      <ITEM name="WatchPoint 11">1,0,00000000,</ITEM>
-     <ITEM name="WatchPoint 12">0,0,00000000,</ITEM>
-     <ITEM name="WatchPoint 13">0,0,00000000,</ITEM>
+     <ITEM name="WatchPoint 12">1,0,00000000,</ITEM>
+     <ITEM name="WatchPoint 13">1,0,00000000,</ITEM>
+     <ITEM name="WatchPoint 14">1,0,00000000,</ITEM>
      <ITEM name="WatchPoint 18">0,0,00000000,</ITEM>
      <ITEM name="WatchPoint 19">1,0,00000000,</ITEM>
-     <ITEM name="WatchPoint 2">0,0,00000000,</ITEM>
-     <ITEM name="WatchPoint 20">0,0,00000000,</ITEM>
-     <ITEM name="WatchPoint 21">0,0,00000000,</ITEM>
+     <ITEM name="WatchPoint 2">1,0,00000000,</ITEM>
+     <ITEM name="WatchPoint 20">1,0,00000000,</ITEM>
+     <ITEM name="WatchPoint 21">1,0,00000000,</ITEM>
+     <ITEM name="WatchPoint 22">1,0,00000000,</ITEM>
      <ITEM name="WatchPoint 28">0,0,00000000,</ITEM>
      <ITEM name="WatchPoint 29">0,0,00000000,</ITEM>
      <ITEM name="WatchPoint 3">0,0,00000000,</ITEM>
      <ITEM name="WatchPoint 30">1,0,00000000,</ITEM>
      <ITEM name="WatchPoint 31">1,0,00000000,</ITEM>
-     <ITEM name="WatchPoint 4">0,0,00000000,</ITEM>
-     <ITEM name="WatchPoint 5">0,0,00000000,</ITEM>
+     <ITEM name="WatchPoint 4">1,0,00000000,</ITEM>
+     <ITEM name="WatchPoint 5">1,0,00000000,</ITEM>
      <ITEM name="WatchPoint 6">1,0,00000000,</ITEM>
      <ITEM name="WatchPoint 7">1,0,00000000,</ITEM>
      <ITEM name="WatchPoint 9">1,0,00000000,</ITEM>
-     <ITEM name="nItems">5</ITEM>
+     <ITEM name="nItems">4</ITEM>
     </PROPERTIES>
    </POPUP>
    <POPUP w="695" x="436" flags="00000000" y="556" h="464" pid="0" iid="16">
@@ -196,11 +198,14 @@
      <ITEM name="TopLineAddress">00000020</ITEM>
     </PROPERTIES>
    </POPUP>
-   <POPUP w="450" x="266" flags="00000022" y="350" h="250" pid="0" iid="35">
+   <POPUP w="695" x="1076" flags="00000000" y="528" h="464" pid="0" iid="35">
     <PROPERTIES>
      <ITEM name="AutoEcho">1</ITEM>
      <ITEM name="HexMode">0</ITEM>
     </PROPERTIES>
+   </POPUP>
+   <POPUP w="695" x="611" flags="00000000" y="356" h="464" pid="0" iid="37">
+    <PROPERTIES/>
    </POPUP>
   </PWI>
  </MODULE>
