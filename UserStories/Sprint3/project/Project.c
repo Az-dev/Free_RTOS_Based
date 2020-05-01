@@ -110,7 +110,7 @@
                }
                else
                {
-                  ResetUDR();
+                  //ResetUDR();
                   /* triggers display received msg event */
                   gu8_LCD_Flag = PRINT_RECEIVED_MSG;
                   /* trigger led 1 to be on */
@@ -122,7 +122,8 @@
                au8_EventGroupVal = 0;                         
                /* write byte to UDR from xQueueTx*/
                if(pdPASS == xQueueReceive(xQueueTx,&au8_temp_Tx_Char,pdMS_TO_TICKS(2)))
-               {                                        
+               {  
+                  _delay_us(5);  /* minor delay for consequative writes */                                        
                   UsartWriteTx(&au8_temp_Tx_Char);                                    
                }                                          
             break;            
