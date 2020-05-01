@@ -28,13 +28,13 @@
  static uint8_t gu8_LCD_Flag = NO_DISPLAY_ACTION;
  /* LED Flag */
  static uint8_t gu8_LED_Flag = NO_LED_ACTION;
- /* Define communication queues*/
+ /* communication queues*/
  QueueHandle_t xQueueTx = NULL;
  QueueHandle_t xQueueRx = NULL;
+ /* Display Queue */
  QueueHandle_t xQueueKeypadDisplay = NULL;
  /* Define terminating character */
  uint8_t gu8_terminatingChar = '\n';
-
  /*- FUNCTION DEFINITIONS ---------------------------------------------------------------------------------------------------*/
  /*---------- Call backs definitions ----------*/
  static void TxCallBack(void)
@@ -52,9 +52,7 @@
    /* forcing getting out from call back by forcing context switch with taskYIELD */
    taskYIELD();      
  }
- /*--------- End call back definitions --------*/
-
- 
+ /*--------- End call back definitions --------*/ 
 
  static void S3_projectInit()
  {
@@ -123,7 +121,7 @@
                /* write byte to UDR from xQueueTx*/
                if(pdPASS == xQueueReceive(xQueueTx,&au8_temp_Tx_Char,pdMS_TO_TICKS(2)))
                {  
-                  _delay_us(5);  /* minor delay for consequative writes */                                        
+                  _delay_us(5);  /* minor delay for consequtive writes */                                        
                   UsartWriteTx(&au8_temp_Tx_Char);                                    
                }                                          
             break;            
