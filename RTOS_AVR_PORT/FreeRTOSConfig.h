@@ -55,12 +55,6 @@
 #define configUSE_16_BIT_TICKS		1
 #define configIDLE_SHOULD_YIELD		0
 #define configQUEUE_REGISTRY_SIZE	0
-#define configUSE_TIMERS            1
-
-/* Timers configurations */
-#define configTIMER_TASK_PRIORITY   1
-#define configTIMER_TASK_STACK_DEPTH 5
-#define configTIMER_QUEUE_LENGTH 5
 
 
 /* Co-routine definitions. */
@@ -79,7 +73,6 @@ to exclude the API function. */
 #define INCLUDE_vTaskDelayUntil			1
 #define INCLUDE_vTaskDelay				0
 #define INCLUDE_xTaskGetCurrentTaskHandle 1
-#define INCLUDE_xTimerPendFunctionCall 1
 
 
 
